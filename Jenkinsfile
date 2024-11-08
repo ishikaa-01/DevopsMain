@@ -8,14 +8,15 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-               git credentialsId: 'ishika', url: 'https://github.com/ishikaa-01/DevopsMain.git'
-
+                // Correct syntax for git step
+                git credentialsId: 'ishika', url: 'https://github.com/ishikaa-01/DevopsMain.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image from the Dockerfile in the repository
                     docker.build(DOCKER_IMAGE)
                 }
             }
