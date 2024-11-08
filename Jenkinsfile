@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/your-repo/simple-microservice.git'
+                git credentialsId: 'ishika' ,'https://github.com/ishikaa-01/DevopsMain.git'
             }
         }
 
