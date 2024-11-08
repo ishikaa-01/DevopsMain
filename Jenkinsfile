@@ -2,13 +2,14 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_IMAGE = 'simple-microservice'
+        BLUE_CONTAINER_NAME = 'blue-microservice'
+        GREEN_CONTAINER_NAME = 'green-microservice'
+        IMAGE_NAME = 'my-microservice'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                // Git checkout step (make sure credentials are set)
                 git credentialsId: 'ishika', url: 'https://github.com/ishikaa-01/DevopsMain.git'
             }
         }
@@ -17,28 +18,51 @@ pipeline {
             steps {
                 script {
                     // Build Docker image
-                    docker.build(DOCKER_IMAGE)
+                    sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
                 }
             }
         }
 
-        stage('Deploy Blue-Green') {
+        stage('Deploy Blue Environment') {
             steps {
                 script {
-                    // Example blue-green deployment switch
-                    def currentEnv = sh(script: 'docker ps --filter "name=blue" -q', returnStdout: true).trim()
-
-                    if (currentEnv) {
-                        // Stop Blue Environment and deploy Green
-                        sh 'docker stop blue && docker rm blue'
-                        sh "docker run -d --name green -p 3000:3000 ${DOCKER_IMAGE}"
-                    } else {
-                        // Stop Green Environment and deploy Blue
-                        sh 'docker stop green && docker rm green'
-                        sh "docker run -d --name blue -p 3000:3000 ${DOCKER_IMAGE}"
-                    }
+                    // Deploy Blue environment
+                    sh '''
+                    docker stop ${BLUE_CONTAINER_NAME} || true
+                    docker rm ${BLUE_CONTAINER_NAME} || true
+                    docker run -d --name ${BLUE_CONTAINER_NAME} -p 3000:3000 ${IMAGE_NAME}:${BUILD_NUMBER}
+                    '''
                 }
             }
+        }
+
+        stage('Deploy Green Environment') {
+            steps {
+                script {
+                    // Deploy Green environment
+                    sh '''
+                    docker stop ${GREEN_CONTAINER_NAME} || true
+                    docker rm ${GREEN_CONTAINER_NAME} || true
+                    docker run -d --name ${GREEN_CONTAINER_NAME} -p 3001:3000 ${IMAGE_NAME}:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+
+        stage('Switch Traffic') {
+            steps {
+                script {
+                    // Switch traffic from Blue to Green (or vice versa)
+                    echo 'Switch traffic to Green Environment'
+                    // Here you would implement traffic switching logic using a load balancer
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
