@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git credentialsId: 'ishika' ,'https://github.com/ishikaa-01/DevopsMain.git'
+               git credentialsId: 'ishika', url: 'https://github.com/ishikaa-01/DevopsMain.git'
+
             }
         }
 
